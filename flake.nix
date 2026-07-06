@@ -27,9 +27,30 @@
       binName = "netcat";
       smoke = [ "--version" ];
       smokePattern = "GNU Netcat";
+
+      # Build via the unpin-llvm engine + emit a bitcode multicall module.
+      # The engine compiles every Linux arch with `clang -target` (no nixpkgs
+      # gcc cross toolchain, no qemu) and self-folds darwin the same way;
+      # Windows stays on cosmo below (engine covers Linux + darwin only).
+      engine = "unpin-llvm";
+      multicall = {
+        inferLinkInputs = true;
+        programs = [{ name = "netcat"; aliases = [ "nc" ]; }];
+      };
+      # Upstream nixpkgs attr is `netcat-gnu` (binary is `netcat`); name it so
+      # the engine's stdenv override targets the attr `build` actually uses.
+      pkgsAttr = "netcat-gnu";
       build = pkgs:
         lib.withAliases pkgs { primary = "netcat"; aliases = [ "nc" ]; }
-          pkgs.pkgsStatic.netcat-gnu;
+          (pkgs.pkgsStatic.netcat-gnu.overrideAttrs (_: {
+            # GNU netcat 0.7.1's configure is autoconf-2.13-era (2003) and
+            # predates --docdir/--localedir. The engine adds a `module` output,
+            # which flips nixpkgs' multiple-outputs hook out of its single-output
+            # early-return and makes it pass those dir flags → configure aborts
+            # ("unrecognized option: --docdir"). setOutputFlags=false stops the
+            # hook emitting any --*dir; --prefix alone still installs into $out.
+            setOutputFlags = false;
+          }));
       windowsBuild = pkgs:
         lib.withAliases pkgs { primary = "netcat.exe"; aliases = [ "nc" ]; }
           (lib.cosmoStaticCross pkgs).netcat-gnu;
