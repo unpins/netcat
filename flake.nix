@@ -41,8 +41,7 @@
       # the engine's stdenv override targets the attr `build` actually uses.
       pkgsAttr = "netcat-gnu";
       build = pkgs:
-        lib.withAliases pkgs { primary = "netcat"; aliases = [ "nc" ]; }
-          (pkgs.pkgsStatic.netcat-gnu.overrideAttrs (_: {
+        (pkgs.pkgsStatic.netcat-gnu.overrideAttrs (_: {
             # GNU netcat 0.7.1's configure is autoconf-2.13-era (2003) and
             # predates --docdir/--localedir. The engine adds a `module` output,
             # which flips nixpkgs' multiple-outputs hook out of its single-output
@@ -52,7 +51,6 @@
             setOutputFlags = false;
           }));
       windowsBuild = pkgs:
-        lib.withAliases pkgs { primary = "netcat.exe"; aliases = [ "nc" ]; }
-          (lib.cosmoStaticCross pkgs).netcat-gnu;
+        (lib.cosmoStaticCross pkgs).netcat-gnu;
     };
 }
