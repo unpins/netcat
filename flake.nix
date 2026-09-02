@@ -35,7 +35,11 @@
       engine = "unpin-llvm";
       multicall = {
         inferLinkInputs = true;
-        programs = [{ name = "netcat"; aliases = [ "nc" ]; }];
+        programs = [{
+          name = "netcat";
+          # The page installs as netcat.1; there is no nc.1.
+          aliases = [ { name = "nc"; noMan = true; } ];
+        }];
       };
       # Upstream nixpkgs attr is `netcat-gnu` (binary is `netcat`); name it so
       # the engine's stdenv override targets the attr `build` actually uses.
