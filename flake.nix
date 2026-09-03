@@ -46,6 +46,12 @@
       pkgsAttr = "netcat-gnu";
       build = pkgs:
         (pkgs.pkgsStatic.netcat-gnu.overrideAttrs (_: {
+            # Off, and measured: `make check` walks every subdirectory and
+            # every one says "Nothing to be done". GNU netcat 0.7.1 (2004)
+            # ships no tests at all — automake generates the target, the
+            # tarball has nothing for it to run. Leaving doCheck on would look
+            # like coverage and be a no-op.
+            doCheck = false;
             # GNU netcat 0.7.1's configure is autoconf-2.13-era (2003) and
             # predates --docdir/--localedir. The engine adds a `module` output,
             # which flips nixpkgs' multiple-outputs hook out of its single-output
