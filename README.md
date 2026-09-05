@@ -50,6 +50,7 @@ The [Releases](https://github.com/unpins/netcat/releases) page has standalone bi
 ## Build notes
 
 - **Platforms:** Linux, macOS, Windows.
-- **GNU variant:** we ship GNU netcat 0.7.1, not the OpenBSD/traditional one — those need a `b64_ntop` libresolv shim to link static against musl, whereas GNU netcat builds clean static-musl and cross-compiles to mingw.
-- **Windows:** mingw cross — a self-contained PE32+ `.exe`.
+- **GNU variant:** we ship GNU netcat 0.7.1, not the OpenBSD one. The OpenBSD build stops on a single function musl does not have (`b64_ntop`, used for proxy authentication); GNU netcat builds clean.
+- **IPv4 only:** GNU netcat 0.7.1 predates IPv6 and has no support for it — `netcat ::1 80` answers `Couldn't resolve host`. The OpenBSD `nc` your distribution ships does handle IPv6; if you need it, that is the one to use.
+- **Windows:** through [Cosmopolitan](https://github.com/jart/cosmopolitan), not mingw — netcat is a BSD-sockets program and mingw has no `<sys/socket.h>` (Winsock uses a different API), so the cross fails outright. Cosmopolitan's libc supplies the POSIX sockets layer.
 - **Man pages:** embedded in the binary, read with `unpin man netcat`.
