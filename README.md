@@ -69,6 +69,5 @@ did before, including the `nc -l -p PORT` spelling.
 ## Build notes
 
 - **Platforms:** Linux (x86_64, i686, ARM64, ARM 32-bit, POWER, RISC-V), macOS (Intel and Apple Silicon), Windows.
-- **Windows:** through [Cosmopolitan](https://github.com/jart/cosmopolitan), not mingw — `nc` is a BSD-sockets program and mingw has no `<sys/socket.h>` (Winsock uses a different API), so the cross fails outright. Cosmopolitan's libc supplies the POSIX sockets layer.
-- **Portability shims:** the Debian sources are written for Linux with libbsd. Three small pieces are supplied here — `b64_ntop` (proxy authentication, absent from musl and Cosmopolitan), the socket flags macOS does not have (`SOCK_CLOEXEC`, `SOCK_NONBLOCK`, `accept4`), and `strtonum` plus `arc4random_uniform` for the Cosmopolitan build, which does not link libbsd at all.
+- **Windows:** through [Cosmopolitan](https://github.com/jart/cosmopolitan), not mingw — `nc` is a BSD-sockets program and mingw has no `<sys/socket.h>`.
 - **Man pages:** embedded in the binary, read with `unpin man netcat`.
