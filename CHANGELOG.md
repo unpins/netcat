@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [1.234-2-1] - 2026-09-26
+
 ### Changed
 
 - **This is now OpenBSD netcat, not GNU netcat.** GNU netcat 0.7.1 is from
