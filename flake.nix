@@ -101,7 +101,7 @@
       # Build via the unpin-llvm engine + emit a bitcode multicall module.
       # The engine compiles every Linux arch with `clang -target` (no nixpkgs
       # gcc cross toolchain, no qemu) and self-folds darwin the same way;
-      # Windows stays on cosmo below (engine covers Linux + darwin only).
+      # Windows stays on cosmo (cosmo.nix), which has the POSIX sockets nc needs.
       engine = "unpin-llvm";
       multicall = {
         inferLinkInputs = true;
