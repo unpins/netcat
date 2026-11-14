@@ -25,18 +25,16 @@
   outputs = { self, unpins-lib }:
     let
       lib = unpins-lib.lib;
-      # musl and cosmopolitan have no b64_ntop -- it is a BIND/libresolv
-      # extension that glibc and the BSDs declare in <resolv.h>. socks.c is the
-      # only caller (Basic auth for an HTTP CONNECT proxy), and the missing
-      # function is precisely what kept this package on GNU netcat.
+      # The source edits live in ./*.patch, each with its reason in the header.
+      # They are applied in postPatch, after nixpkgs' own postPatch has run the
+      # Debian series: `patches =` would apply them before it, against a tree
+      # they do not match.
       #
-      # The <resolv.h> include goes with it: b64_ntop is the only thing socks.c
-      # ever wanted from that header, and the darwin static SDK does not ship
-      # one at all.
+      # b64.patch: musl and cosmopolitan have no b64_ntop, the missing function
+      # that kept this package on GNU netcat.
       b64Shim = ''
         cp ${./unpin-b64.h} unpin-b64.h
-        substituteInPlace socks.c \
-          --replace-fail '#include <resolv.h>' '#include "unpin-b64.h"'
+        patch -p1 < ${./b64.patch}
       '';
       # Debian's port is written for Linux + libbsd. unpin-bsd-compat.h fills
       # what each of our other platforms is missing; on Linux every block in it
@@ -44,40 +42,13 @@
       compatShim = ''
         cp ${./unpin-bsd-compat.h} unpin-bsd-compat.h
       '';
-      # linux + darwin: libbsd is there, the socket flags are not (macOS has no
-      # SOCK_CLOEXEC, SOCK_NONBLOCK or accept4, and no IPTOS_LOWCOST). macOS
-      # also has readpassphrase in its own libc, so libbsd there ships no
-      # <bsd/readpassphrase.h> to include. socks.c gets <bsd/string.h> too --
-      # it calls explicit_bzero, which netcat.c only sees because IT includes
-      # that header, and the macOS SDK declares no explicit_bzero of its own.
+      # linux + darwin: libbsd is there, the socket flags are not.
       nativePatch = b64Shim + compatShim + ''
-        # Nothing links libresolv now that b64_ntop is ours -- and the darwin
-        # SDK has no libresolv.a to find.
-        substituteInPlace Makefile \
-          --replace-fail '--libs libbsd` -lresolv' '--libs libbsd`'
-        substituteInPlace netcat.c \
-          --replace-fail '#include <bsd/string.h>' '#include <bsd/string.h>
-#include "unpin-bsd-compat.h"'
-        substituteInPlace socks.c \
-          --replace-fail '#include <bsd/readpassphrase.h>' '#ifdef __APPLE__
-#include <readpassphrase.h>
-#else
-#include <bsd/readpassphrase.h>
-#endif
-#include <bsd/string.h>'
+        patch -p1 < ${./native.patch}
       '';
-      # cosmo: libbsd does not build there at all (its <bsd/libutil.h> falls
-      # over on __END_DECLS), and cosmo's own libc already has strlcpy,
-      # strlcat, explicit_bzero and readpassphrase. What is left of
-      # <bsd/stdlib.h> is strtonum and arc4random_uniform, which the compat
-      # header supplies under UNPIN_NO_LIBBSD.
+      # cosmo: no libbsd at all.
       cosmoPatch = b64Shim + compatShim + ''
-        substituteInPlace netcat.c \
-          --replace-fail '#include <bsd/stdlib.h>' '#include "unpin-bsd-compat.h"' \
-          --replace-fail '#include <bsd/string.h>' '/* strlcpy: see unpin-bsd-compat.h */' \
-          --replace-fail '#include <arpa/telnet.h>' '/* cosmo has no arpa/telnet.h -- see unpin-bsd-compat.h */'
-        substituteInPlace socks.c \
-          --replace-fail '#include <bsd/readpassphrase.h>' '#include "unpin-bsd-compat.h"'
+        patch -p1 < ${./cosmo.patch}
       '';
       manBoth = ''
         cp $out/share/man/man1/nc.1 $out/share/man/man1/netcat.1

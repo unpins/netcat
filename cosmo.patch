@@ -1,0 +1,41 @@
+cosmopolitan: no libbsd; take its leftovers from unpin-bsd-compat.h.
+
+libbsd does not build under cosmo (its <bsd/libutil.h> falls over on
+__END_DECLS), and cosmo's libc already has strlcpy, strlcat, explicit_bzero and
+readpassphrase. What is left of <bsd/stdlib.h> is strtonum and
+arc4random_uniform, and cosmo has no <arpa/telnet.h>; unpin-bsd-compat.h
+supplies all of them under UNPIN_NO_LIBBSD.
+
+--- a/netcat.c
++++ b/netcat.c
+@@ -42,7 +42,7 @@
+ #include <netinet/in.h>
+ #include <netinet/tcp.h>
+ #include <netinet/ip.h>
+-#include <arpa/telnet.h>
++/* cosmo has no arpa/telnet.h -- see unpin-bsd-compat.h */
+ #ifdef __linux__
+ # include <linux/in6.h>
+ #endif
+@@ -108,8 +108,8 @@
+ # include <tls.h>
+ #endif
+ #include <unistd.h>
+-#include <bsd/stdlib.h>
+-#include <bsd/string.h>
++#include "unpin-bsd-compat.h"
++/* strlcpy: see unpin-bsd-compat.h */
+ 
+ #include "atomicio.h"
+ 
+--- a/socks.c
++++ b/socks.c
+@@ -38,7 +38,7 @@
+ #include <string.h>
+ #include <unistd.h>
+ #include "unpin-b64.h"
+-#include <bsd/readpassphrase.h>
++#include "unpin-bsd-compat.h"
+ #include "atomicio.h"
+ 
+ #define SOCKS_PORT	"1080"

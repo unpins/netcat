@@ -1,0 +1,18 @@
+socks.c: take b64_ntop from unpin-b64.h instead of <resolv.h>.
+
+musl and cosmopolitan have no b64_ntop -- it is a BIND/libresolv extension
+that glibc and the BSDs declare in <resolv.h>. socks.c is the only caller
+(Basic auth for an HTTP CONNECT proxy). b64_ntop is the only thing socks.c
+wants from <resolv.h>, and the darwin static SDK does not ship that header.
+
+--- a/socks.c
++++ b/socks.c
+@@ -37,7 +37,7 @@
+ #include <stdlib.h>
+ #include <string.h>
+ #include <unistd.h>
+-#include <resolv.h>
++#include "unpin-b64.h"
+ #include <bsd/readpassphrase.h>
+ #include "atomicio.h"
+ 

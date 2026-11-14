@@ -1,0 +1,47 @@
+Linux and macOS: no -lresolv, include unpin-bsd-compat.h, readpassphrase on macOS.
+
+- Makefile: nothing links libresolv once b64_ntop is ours (b64.patch), and the
+  darwin SDK has no libresolv.a to find.
+- netcat.c: include unpin-bsd-compat.h, which supplies SOCK_CLOEXEC,
+  SOCK_NONBLOCK, accept4 and IPTOS_LOWCOST on macOS.
+- socks.c: macOS has readpassphrase in its own libc, so libbsd there ships no
+  <bsd/readpassphrase.h>. socks.c also gets <bsd/string.h>: it calls
+  explicit_bzero, which netcat.c only sees because it includes that header,
+  and the macOS SDK declares no explicit_bzero of its own.
+
+--- a/netcat.c
++++ b/netcat.c
+@@ -110,6 +110,7 @@
+ #include <unistd.h>
+ #include <bsd/stdlib.h>
+ #include <bsd/string.h>
++#include "unpin-bsd-compat.h"
+ 
+ #include "atomicio.h"
+ 
+--- a/socks.c
++++ b/socks.c
+@@ -38,7 +38,12 @@
+ #include <string.h>
+ #include <unistd.h>
+ #include "unpin-b64.h"
++#ifdef __APPLE__
++#include <readpassphrase.h>
++#else
+ #include <bsd/readpassphrase.h>
++#endif
++#include <bsd/string.h>
+ #include "atomicio.h"
+ 
+ #define SOCKS_PORT	"1080"
+--- a/Makefile
++++ b/Makefile
+@@ -4,7 +4,7 @@
+ SRCS=	netcat.c atomicio.c socks.c
+ 
+ PKG_CONFIG ?= pkg-config
+-LIBS ?= `$(PKG_CONFIG) --libs libbsd` -lresolv
++LIBS ?= `$(PKG_CONFIG) --libs libbsd`
+ OBJS=  $(SRCS:.c=.o)
+ CFLAGS=  -g -O2
+ LDFLAGS=  -Wl,--no-add-needed
