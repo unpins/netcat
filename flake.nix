@@ -86,6 +86,8 @@
       pkgsAttr = "netcat-openbsd";
       build = pkgs:
         (pkgs.pkgsStatic.netcat-openbsd.overrideAttrs (oa: {
+          # No test suite: the port's Makefile has only all/nc/clean. The one
+          # check is nixpkgs' installCheck (`nc -h`), on targets that can run it.
           postPatch = (oa.postPatch or "") + nativePatch;
           # The Makefile hard-codes `-Wl,--no-add-needed`, an ELF-only flag
           # ld64 refuses outright. It says nothing for a static link anyway.

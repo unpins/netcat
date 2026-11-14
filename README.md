@@ -69,5 +69,6 @@ did before, including the `nc -l -p PORT` spelling.
 ## Build notes
 
 - **Platforms:** Linux (x86_64, i686, ARM64, ARM 32-bit, POWER, RISC-V), macOS (Intel and Apple Silicon), Windows.
-- **Windows:** through [Cosmopolitan](https://github.com/jart/cosmopolitan), not mingw — `nc` is a BSD-sockets program and mingw has no `<sys/socket.h>`.
+- **Windows:** through [Cosmopolitan](https://github.com/jart/cosmopolitan), not mingw — `nc` is a BSD-sockets program and mingw has no `<sys/socket.h>`. `-Z` (DCCP), `-S` (TCP MD5 signatures) and `-m` (minimum TTL) are Linux features: on Windows they report that support is unavailable.
 - **Man pages:** embedded in the binary, read with `unpin man netcat`.
+- **Tests:** netcat ships no test suite.
