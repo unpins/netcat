@@ -1,8 +1,12 @@
-/* The Linux-only spellings the Debian port of OpenBSD nc uses, for a libc
- * that has none of them -- macOS.
+/* What the Debian port of OpenBSD nc needs beyond its Linux + libbsd base,
+ * for macOS and cosmopolitan. On Linux every block here compiles away.
+ *
+ * macOS lacks the Linux-only spellings below; cosmo (UNPIN_NO_LIBBSD) builds
+ * without libbsd and gets strtonum, arc4random_uniform and the telnet
+ * constants further down.
  *
  * SOCK_CLOEXEC / SOCK_NONBLOCK (socket flags, Linux 2.6.27) and accept4() do
- * not exist there, and the port reaches for all three: netcat.c opens its
+ * not exist on macOS, and the port reaches for all three: netcat.c opens its
  * connect socket with SOCK_NONBLOCK, its unix sockets with SOCK_CLOEXEC, and
  * accepts with accept4(). The flags carry real behaviour -- a blocking connect
  * socket would break the -w timeout -- so they are re-implemented with the
@@ -12,7 +16,8 @@
  * own fallback block is skipped, and defines no IPTOS_LOWCOST for the -T
  * keyword table to name.
  *
- * Include AFTER <sys/socket.h> -- socket() and accept4() become macros here.
+ * socket() and accept4() become macros here; this header includes
+ * <sys/socket.h> itself before defining them.
  */
 #ifndef UNPIN_BSD_COMPAT_H
 #define UNPIN_BSD_COMPAT_H
